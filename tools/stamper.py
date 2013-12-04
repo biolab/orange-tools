@@ -30,15 +30,16 @@ except ImportError:
     MAC = False
 
 # file name prefixes
-ORG = "org" # input image file
-NUM = "num" # tagged file
-TAG = "tag" # tags
+ORG = "orig" # input image file
+NUM = "stamped" # text file with tags and positions
+TAG = "tags" # stamped file
 
 AppName = "Stamper"
 PointSize = 17
 Dirty = True
 MAC = True
-    
+
+
 class GraphicsView(QGraphicsView):
     
     def __init__(self, parent=None):
@@ -92,9 +93,9 @@ class GraphicsView(QGraphicsView):
 
 
 def save_png(filename, xy):
-    print "Saving to %s-%s.png ..." % (NUM, filename),
-    if os.path.exists(ORG + "-" + filename + ".png"):
-        background = Image.open(ORG + "-" + filename + ".png")
+    print "Saving to %s-%s.png ..." % (filename, NUM),
+    if os.path.exists("%s-%s.png" % (filename, ORG)):
+        background = Image.open("%s-%s.png" % (filename, ORG))
     else:
         background = Image.open(filename + ".png")
     if background.mode not in ["RGB", "RGBA"]:
@@ -105,7 +106,7 @@ def save_png(filename, xy):
 #        background.paste(overlay, (x + overlay.size[0]/2 - 2, y + overlay.size[1]/2 - 2), overlay)
         print (int(x + overlay.size[0]/2 - 2), int(y + overlay.size[1]/2 - 2))
         background.paste((0, 0, 0), (int(x + overlay.size[0]/2 - 2), int(y + overlay.size[1]/2 - 2)), overlay)
-    background.save(NUM + "-" + os.path.splitext(filename)[0] + ".png")
+    background.save(os.path.splitext(filename)[0] + "-" + NUM + ".png")
     print "done."
 
 
@@ -118,8 +119,8 @@ class MainForm(QDialog):
         background = QPixmap(filename)
 
         self.filename = os.path.splitext(filename)[0]
-        if self.filename.startswith("%s-" % ORG):
-            self.filename = self.filename[1+len(ORG):]
+        if ("-%s" % ORG) in self.filename:
+            self.filename = self.filename[:-len(ORG)-5] + ".png"
 
         self.view.setBackgroundBrush(QBrush(background))
         # self.view.setCacheMode(QGraphicsView.CacheBackground)
@@ -162,7 +163,7 @@ class MainForm(QDialog):
 
         self.setWindowTitle(AppName)
         
-        info_name = TAG + "-" + self.filename + ".txt"
+        info_name = self.filename + "-" + TAG + ".txt"
             
         if os.path.exists(info_name):
             for tag, x, y in [line.strip().split("\t") for line in file(info_name, "r").readlines()]:
@@ -203,7 +204,7 @@ class MainForm(QDialog):
 
     def save(self):
         vals = sorted([(item.stamp, item.pos().x(), item.pos().y()) for item in self.scene.items() if isinstance(item, StampItem)])
-        info_name = TAG + "-" + self.filename + ".txt"
+        info_name = "%s-%s.txt" %(self.filename, TAG)
         f = file(info_name, "w")
         for tag, x, y in vals:
             f.write("%s\t%d\t%d\n" % (tag, x, y))
@@ -537,21 +538,22 @@ c_r.seek(0)
 objs = pickle.loads(c_r.read())
 im_numbers = [Image.open(str2file(obj)) for obj in objs]
 
+
 def usage(argv):
     print "%s filename" % argv[0]
     print "  Helps stamp PNG files with numbered labels, "
     print "  outputs a new PNG ready for documentation."
     print
-    print "  expected filename format: %s-name.png" % ORG
+    print "  expected filename format: name-%s.png or name.png" % ORG
     print "  output: %s-name.txt (info file), %s-name.png (number-marked png)" % (TAG, NUM)
     print
     print "Example:"
-    print "% python %s o-snap.png"
+    print "% python %s File.png"
     print
     print "Files and extensions:"
-    print "%s-*.png  input image file" % ORG
-    print "%s-*.png  tagged image file" % NUM 
-    print "%s-*.txt  coordinates of tags" % TAG
+    print "*-%s.png  input image file" % ORG
+    print "*-%s.png  tagged image file" % NUM
+    print "*-%s.txt  coordinates of tags" % TAG
     
 app = QApplication(sys.argv)
 if len(sys.argv) < 2:
