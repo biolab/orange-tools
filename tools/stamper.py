@@ -3,6 +3,7 @@
 # Blaz Zupan blaz.zupan at fri.uni-lj.si
 # Ver 1.0: July 2010
 # Ver 2.0: Aug 2011 (no more font and text, just same images in PIL and Qt)
+from __future__ import print_function, division
 
 import sys
 import random
@@ -10,24 +11,23 @@ import functools
 import os.path
 import pickle
 import uu
-import StringIO
+import io
 
 from PIL import Image, ImageQt
 
-from PyQt4.QtCore import (QByteArray, QDataStream, QFile, QFileInfo,
-        QIODevice, QPoint, QPointF, QRectF, QString, Qt, SIGNAL)
+from PyQt4.QtCore import (
+    QByteArray, QDataStream, QFile, QFileInfo,
+    QIODevice, QPoint, QPointF, QRectF, Qt, SIGNAL
+)
 
-from PyQt4.QtGui import (QApplication, QCursor, QDialog,
-        QDialogButtonBox, QFileDialog, QGraphicsItem, QGraphicsPixmapItem,
-        QGraphicsScene, QGraphicsPixmapItem, QGraphicsView, QGridLayout,
-        QHBoxLayout, QLabel, QMatrix, QMenu, QMessageBox, QPainter,
-        QPen, QPixmap, QPushButton, QSpinBox,
-        QStyle, QTextEdit, QVBoxLayout, QBrush, QSizePolicy)
-
-try:
-    from PyQt4.QtGui import qt_mac_set_native_menubar
-except ImportError:
-    MAC = False
+from PyQt4.QtGui import (
+    QApplication, QCursor, QDialog,
+    QDialogButtonBox, QFileDialog, QGraphicsItem, QGraphicsPixmapItem,
+    QGraphicsScene, QGraphicsPixmapItem, QGraphicsView, QGridLayout,
+    QHBoxLayout, QLabel, QMatrix, QMenu, QMessageBox, QPainter,
+    QPen, QPixmap, QPushButton, QSpinBox,
+    QStyle, QTextEdit, QVBoxLayout, QBrush, QSizePolicy
+)
 
 # file name prefixes
 ORG = "orig" # input image file
@@ -93,7 +93,7 @@ class GraphicsView(QGraphicsView):
 
 
 def save_png(filename, xy):
-    print "Saving to %s-%s.png ..." % (filename, NUM),
+    print("Saving to %s-%s.png ..." % (filename, NUM))
     if os.path.exists("%s-%s.png" % (filename, ORG)):
         background = Image.open("%s-%s.png" % (filename, ORG))
     else:
@@ -103,11 +103,12 @@ def save_png(filename, xy):
     for i, (x,y) in enumerate(xy):
         x = int(x); y = int(y)
         overlay = im_numbers[i]
-#        background.paste(overlay, (x + overlay.size[0]/2 - 2, y + overlay.size[1]/2 - 2), overlay)
-        print (int(x + overlay.size[0]/2 - 2), int(y + overlay.size[1]/2 - 2))
-        background.paste((0, 0, 0), (int(x + overlay.size[0]/2 - 2), int(y + overlay.size[1]/2 - 2)), overlay)
+        print(int(x + overlay.size[0]//2 - 2), int(y + overlay.size[1]//2 - 2))
+        background.paste((0, 0, 0), (int(x + overlay.size[0]//2 - 2),
+                                     int(y + overlay.size[1]//2 - 2)),
+                         overlay)
     background.save(os.path.splitext(filename)[0] + "-" + NUM + ".png")
-    print "done."
+    print("done.")
 
 
 class MainForm(QDialog):
@@ -166,7 +167,7 @@ class MainForm(QDialog):
         info_name = self.filename + "-" + TAG + ".txt"
             
         if os.path.exists(info_name):
-            for tag, x, y in [line.strip().split("\t") for line in file(info_name, "r").readlines()]:
+            for tag, x, y in [line.strip().split("\t") for line in open(info_name, "rt").readlines()]:
                 self.addTag(int(tag), QPointF(int(x), int(y)), adjust_position=False)
         global Dirty; Dirty=False
         self.show()
@@ -179,11 +180,6 @@ class MainForm(QDialog):
         self.offerSave()
         QDialog.accept(self)
         
-#    def addLine(self):
-#        item = self.scene.addLine(0,0,100,100)
-#        item.setFlags(QGraphicsItem.ItemIsSelectable | QGraphicsItem.ItemIsMovable)
-#        self.scene.update()
-
     def offerSave(self):
         if (Dirty and QMessageBox.question(self, "%s - Unsaved Changes" % AppName, "Save unsaved changes?", 
                                            QMessageBox.Yes|QMessageBox.No) == QMessageBox.Yes):
@@ -205,7 +201,7 @@ class MainForm(QDialog):
     def save(self):
         vals = sorted([(item.stamp, item.pos().x(), item.pos().y()) for item in self.scene.items() if isinstance(item, StampItem)])
         info_name = "%s-%s.txt" %(self.filename, TAG)
-        f = file(info_name, "w")
+        f = open(info_name, "wt")
         for tag, x, y in vals:
             f.write("%s\t%d\t%d\n" % (tag, x, y))
         f.close()
@@ -252,7 +248,7 @@ class StampItem(QGraphicsPixmapItem):
         self.setSelected(True)
         if adjust_position:
             bb = self.boundingRect()
-            self.moveBy(-(bb.width()/2 + 3), -(bb.height()/2 + 3))
+            self.moveBy(-(bb.width()//2 + 3), -(bb.height()//2 + 3))
 
     def setStamp(self, stamp):
         self.stamp = stamp
@@ -289,7 +285,7 @@ class StampItem(QGraphicsPixmapItem):
         pass
 
 
-numbers_coded = r"""begin 666 -
+numbers_coded = br"""begin 666 -
 M*&QP, I3)UQX.#E03D=<<EQN7'@Q85QN7'@P,%QX,#!<># P7'))2$127'@P
 M,%QX,#!<># P7'@P95QX,#!<># P7'@P,%QX,&5<># X7'@P-EQX,#!<># P
 M7'@P,%QX,69(+5QX9#%<># P7'@P,%QX,#!<='!(67-<># P7'@P,%QR7'AD
@@ -525,35 +521,43 @@ G;EQX,#!<># P7'@P,%QX,#!)14Y$7'AA94)@7'@X,B<*<#$P"F$N
  
 end"""
 
-def str2file(s):
-    c = StringIO.StringIO()
-    c.write(s)
-    c.seek(0)
-    return c
+def as_bytes(bytes_or_text):
+    if isinstance(bytes_or_text, bytes):
+        return bytes_or_text
+    else:
+        return bytes_or_text.encode("latin-1")
 
 # retrieve image of numbers from uuencoded pickled objects
-c_r = StringIO.StringIO()
-uu.decode(str2file(numbers_coded), c_r)
-c_r.seek(0) 
-objs = pickle.loads(c_r.read())
-im_numbers = [Image.open(str2file(obj)) for obj in objs]
+
+c_r = io.BytesIO()
+uu.decode(io.BytesIO(numbers_coded), c_r)
+c_r.seek(0)
+
+if sys.version_info < (3, ):
+    objs = pickle.load(c_r)
+else:
+    objs = pickle.load(c_r, encoding="latin-1")
+
+im_numbers = [Image.open(io.BytesIO(as_bytes(obj))) for obj in objs]
+
 
 
 def usage(argv):
-    print "%s filename" % argv[0]
-    print "  Helps stamp PNG files with numbered labels, "
-    print "  outputs a new PNG ready for documentation."
-    print
-    print "  expected filename format: name-%s.png or name.png" % ORG
-    print "  output: %s-name.txt (info file), %s-name.png (number-marked png)" % (TAG, NUM)
-    print
-    print "Example:"
-    print "% python %s File.png"
-    print
-    print "Files and extensions:"
-    print "*-%s.png  input image file" % ORG
-    print "*-%s.png  tagged image file" % NUM
-    print "*-%s.txt  coordinates of tags" % TAG
+    print("%s filename" % argv[0])
+    print("  Helps stamp PNG files with numbered labels, ")
+    print("  outputs a new PNG ready for documentation.")
+    print()
+    print("  expected filename format: name-%s.png or name.png" % ORG)
+    print("  output: %s-name.txt (info file), %s-name.png (number-marked png)" %
+          (TAG, NUM))
+    print()
+    print("Example:")
+    print("% python %s File.png")
+    print()
+    print("Files and extensions:")
+    print("*-%s.png  input image file" % ORG)
+    print("*-%s.png  tagged image file" % NUM)
+    print("*-%s.txt  coordinates of tags" % TAG)
     
 app = QApplication(sys.argv)
 if len(sys.argv) < 2:
