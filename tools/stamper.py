@@ -558,15 +558,30 @@ def usage(argv):
     print("*-%s.png  input image file" % ORG)
     print("*-%s.png  tagged image file" % NUM)
     print("*-%s.txt  coordinates of tags" % TAG)
+
+def main(argv=sys.argv):
+    if len(argv) == 1:
+        filename = None
+    else:
+        if argv[1] in ["-h", "--help"]:
+            usage(argv)
+            return 0
+        else:
+            filename = argv[1]
     
-app = QApplication(sys.argv)
-if len(sys.argv) < 2:
-    usage(sys.argv)
-    sys.exit(0)
+    app = QApplication(argv)
+    if filename is None:
+        filename = QFileDialog.getOpenFileName(
+            None, "Image file", os.path.expanduser("~/Documents"),
+            "Image (*.png)")
+        if not filename:
+            return 1 
 
-filename = sys.argv[1]
-form = MainForm(filename=filename)
-rect = QApplication.desktop().availableGeometry()
-form.show()
-app.exec_()
+    form = MainForm(filename=filename)
+    rect = QApplication.desktop().availableGeometry()
+    form.show()
+    form.raise_()
+    return app.exec_()
 
+if __name__ == "__main__":
+    sys.exit(main())
