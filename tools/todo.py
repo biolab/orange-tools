@@ -117,7 +117,7 @@ def print_statistics():
     print("Stickers to print: {}".format(sum((1 for d in data
                                               if d["Printed?"] == "no"))))
     ps = Counter(int(d["Priority"]) for d in data if d["Printed?"] == "no")
-    print("\n".join(("  {:>9}({}): {}".format(priority[p], p, n)
+    print("\n".join(("  {:>9}({}): {}".format(priority_word[p], p, n)
                      for p, n in sorted(ps.items()))))
 
 sticker_data = Data()
