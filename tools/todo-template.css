@@ -30,3 +30,8 @@ p.id {
     font: 8px rockwell, sans-serif;
     text-align: right;
 }
+
+p.reported_by {
+    font: 8px rockwell, sans-serif;
+    text-align: right;
+}
