@@ -44,6 +44,7 @@ html_body = """
 <p class="important">{}</p>
 <p class="description">{}</p>
 <p class="smallprint">{}</p>
+<p class="reported_by">{}</p>
 </div>
 </td>
 """
@@ -98,7 +99,8 @@ def print_stickers(sticker_priority):
             int(d["ID"]),
             str(d["Title"]),
             str(d["Task"]),
-            str_value(d["SmallPrint"])
+            str_value(d["SmallPrint"]),
+            "Reported by: %s" % str(d["Reported by"]) if str(d["Reported by"]) != "?" else ""
             )
         )
         if count % 2 != 0:
