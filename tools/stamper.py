@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 # Blaz Zupan blaz.zupan at fri.uni-lj.si
 # Ver 1.0: July 2010
 # Ver 2.0: Aug 2011 (no more font and text, just same images in PIL and Qt)
