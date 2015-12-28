@@ -25,7 +25,7 @@ Manage list of stickers for Orange. Prepares a list of html pages for sticker
 printout. The following call will print out all stickers that are marked not
 printed and are of priority 3.
 
-   % python todo.py -p 3
+    % python todo.py -p 3
 
 Stickers are defined on google sheet that can be accessed by biolab members.
 
