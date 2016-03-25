@@ -95,8 +95,8 @@ def print_stickers(sticker_priority):
         f.write(html_body.format(
             "%s - " % str(d["Owner"]) if str(d["Owner"]) != "?" else "",
             priority_word[int(d["Priority"])],
-            "*" * int(d["Difficulty"]),
-            int(d["ID"]),
+            "%s" % int(d["Difficulty"]),
+            int(d["ID"].value),
             str(d["Title"]),
             str(d["Task"]),
             str_value(d["SmallPrint"]),
