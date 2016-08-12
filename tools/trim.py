@@ -8,7 +8,8 @@ from PIL import Image, ImageChops, ImageFilter
 import glob
 import os.path
 
-thumbnail_size = (180, 180)
+# thumbnail_size = (180, 180)
+thumbnail_size = (555, 1000)
 
 
 def rgb_color_finder(rgb_img, color_min=(0, 0, 0), color_max=(255, 255, 255),
@@ -84,7 +85,8 @@ def process(file_path, args):
             bbox[2]+args.border, bbox[3]+args.border)
     if not args.nocrop:
         pim = pim.crop(bbox)
-    print("   -> trimming: %s.png, size %s" % (file_name, str(pim.size)))
+    print("   -> trimming: %s.png, size %s, width at 80%% is %d" %
+          (file_name, str(pim.size), int(pim.size[0]*0.8)))
 
     # transparent background
     pim.save("%s.png" % file_name, transparency=t)
@@ -93,8 +95,8 @@ def process(file_path, args):
     wim = rgb_color_replacer_by_mask(pim, (255, 255, 255), color_mask)
     wim.thumbnail(thumbnail_size, Image.ANTIALIAS)
     wim = wim.filter(ImageFilter.DETAIL)
-    wim.save("%s-thumb.png" % file_name)
-    print("   -> thumb: %s-thumb.png, size %s" % (file_name, str(wim.size)))
+    wim.save("%s.thumb.png" % file_name)
+    print("   -> thumb: %s.thumb.png, size %s" % (file_name, str(wim.size)))
 
 
 parser = argparse.ArgumentParser()
@@ -103,5 +105,6 @@ parser.add_argument("-n", "--nocrop", help="crop image",
 parser.add_argument("-b", "--border", help="border width", default=3)
 parser.add_argument("files", type=str, help="file names to match")
 arguments = parser.parse_args()
-for f_name in glob.glob(arguments.files):
+
+for f_name in arguments.files.split():
     process(f_name, arguments)
