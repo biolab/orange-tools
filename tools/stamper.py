@@ -11,21 +11,27 @@ import pickle
 import uu
 import io
 
+import sip
+sip.setapi("QFileDialog", 2)
+
 from PIL import Image, ImageQt
 
-from PyQt4.QtCore import (
+from AnyQt.QtCore import (
     QByteArray, QDataStream, QFile, QFileInfo,
-    QIODevice, QPoint, QPointF, QRectF, Qt, SIGNAL
+    QIODevice, QPoint, QPointF, QRectF, Qt
 )
 
-from PyQt4.QtGui import (
-    QApplication, QCursor, QDialog,
+from AnyQt.QtCore import pyqtSignal as SIGNAL
+
+from AnyQt.QtWidgets import (
+    QApplication, QDialog,
     QDialogButtonBox, QFileDialog, QGraphicsItem, QGraphicsPixmapItem,
     QGraphicsScene, QGraphicsPixmapItem, QGraphicsView, QGridLayout,
-    QHBoxLayout, QLabel, QMatrix, QMenu, QMessageBox, QPainter,
-    QPen, QPixmap, QPushButton, QSpinBox,
-    QStyle, QTextEdit, QVBoxLayout, QBrush, QSizePolicy
+    QHBoxLayout, QLabel, QMenu, QMessageBox, QPushButton, QSpinBox,
+    QStyle, QTextEdit, QVBoxLayout, QSizePolicy
 )
+
+from AnyQt.QtGui import (QCursor, QTransform, QPainter, QPen, QPixmap, QBrush)
 
 # file name prefixes
 ORG = "orig" # input image file
@@ -141,9 +147,10 @@ class MainForm(QDialog):
                 ("&Save", self.save),
                 ("&Quit", self.accept)):
             button = QPushButton(text)
+            button.clicked.connect(slot)
             if not MAC:
                 button.setFocusPolicy(Qt.NoFocus)
-            self.connect(button, SIGNAL("clicked()"), slot)
+                self.lineedit.returnPressed.connect(self.updateUi)
             if text == "&Save":
                 buttonLayout.addStretch(5)
             if text == "&Quit":
@@ -235,12 +242,12 @@ class MainForm(QDialog):
 
 class StampItem(QGraphicsPixmapItem):
     def __init__(self, stamp, position, scene, adjust_position=True,
-                 matrix=QMatrix()):
+                 matrix=QTransform()):
         super(StampItem, self).__init__()
         self.setFlags(QGraphicsItem.ItemIsSelectable | QGraphicsItem.ItemIsMovable)
         self.setStamp(stamp)
         self.setPos(position)
-        self.setMatrix(matrix)
+        self.setTransform(matrix)
         scene.clearSelection()
         scene.addItem(self)
         self.setSelected(True)
@@ -569,11 +576,12 @@ def main(argv=sys.argv):
     
     app = QApplication(argv)
     if filename is None:
-        filename = QFileDialog.getOpenFileName(
+        filename, _ = QFileDialog.getOpenFileName(
             None, "Image file", os.path.expanduser("~/Documents"),
             "Image (*.png)")
         if not filename:
-            return 1 
+            return 1
+        print(filename)
 
     form = MainForm(filename=filename)
     rect = QApplication.desktop().availableGeometry()
