@@ -96,7 +96,7 @@ class GraphicsView(QGraphicsView):
         Dirty = True
 
 
-def save_png(filename, xy):
+def save_png(filename, xy, pixelRatio=1):
     print("Saving to %s-%s.png ..." % (filename, NUM))
     if os.path.exists("%s-%s.png" % (filename, ORG)):
         background = Image.open("%s-%s.png" % (filename, ORG))
@@ -105,33 +105,39 @@ def save_png(filename, xy):
     if background.mode not in ["RGB", "RGBA"]:
         background = background.convert("RGB")
     for i, (x,y) in enumerate(xy):
-        x = int(x); y = int(y)
+        x = int(x*pixelRatio)
+        y = int(y*pixelRatio)
         overlay = im_numbers[i]
+        overlay = overlay.resize((int(overlay.size[0]*pixelRatio), int(overlay.size[1]*pixelRatio)))
+
         print(int(x + overlay.size[0]//2 - 2), int(y + overlay.size[1]//2 - 2))
         background.paste((0, 0, 0), (int(x + overlay.size[0]//2 - 2),
                                      int(y + overlay.size[1]//2 - 2)),
                          overlay)
-    background.save(os.path.splitext(filename)[0] + "-" + NUM + ".png")
+    background.save(os.path.splitext(filename)[0] + "-" + NUM + ".png", dpi=background.info.get("dpi", (72, 72)))
     print("done.")
 
 
 class MainForm(QDialog):
-
     def __init__(self, parent=None, filename=None):
         super(MainForm, self).__init__(parent)
 
         self.view = GraphicsView()
         background = QPixmap(filename)
+        # assume screnshots were taken on the same system stamper is being used on
+        # DPI check might be more robust, can be added if needed
+        background.setDevicePixelRatio(self.devicePixelRatioF())
 
         self.filename = os.path.splitext(filename)[0]
         if ("-%s" % ORG) in self.filename:
             self.filename = self.filename[:-len(ORG)-5] + ".png"
 
-        self.view.setBackgroundBrush(QBrush(background))
+        # self.view.setBackgroundBrush(QBrush(background))
         # self.view.setCacheMode(QGraphicsView.CacheBackground)
         # self.view.setDragMode(QGraphicsView.ScrollHandDrag)
 
         self.scene = QGraphicsScene(self)
+        self.scene.addPixmap(background)
         global scene
         scene = self.scene
         self.view.dialog = self
@@ -158,8 +164,9 @@ class MainForm(QDialog):
             buttonLayout.addWidget(button)
         buttonLayout.addStretch()
 
-        self.view.resize(background.width(), background.height())
-        self.scene.setSceneRect(0, 0, background.size().width(), background.size().height())
+        size = background.size() / background.devicePixelRatioF()
+        self.view.resize(size.width(), size.height())
+        self.scene.setSceneRect(0, 0, size.width(), size.height())
         self.view.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
 
         layout = QHBoxLayout()
@@ -210,9 +217,9 @@ class MainForm(QDialog):
         for tag, x, y in vals:
             f.write("%s\t%d\t%d\n" % (tag, x, y))
         f.close()
-        save_png(self.filename, [(x-5, y-5) for _, x, y in vals])
+        save_png(self.filename, [(x-5, y-5) for _, x, y in vals], self.devicePixelRatioF())
         global Dirty; Dirty = False
-        
+
     def renumberTags(self):
         """Number the tags by skipping the missing values"""
         vals = sorted([(item.stamp, item) for item in self.scene.items() if isinstance(item, StampItem)])
@@ -575,6 +582,8 @@ def main(argv=sys.argv):
             filename = argv[1]
     
     app = QApplication(argv)
+    app.setAttribute(Qt.AA_EnableHighDpiScaling)
+    app.setAttribute(Qt.AA_UseHighDpiPixmaps)
     if filename is None:
         filename, _ = QFileDialog.getOpenFileName(
             None, "Image file", os.path.expanduser("~/Documents"),
