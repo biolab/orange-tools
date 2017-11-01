@@ -144,7 +144,7 @@ if not source:
     info["source"] = None
 else:
     source_url = query("Source URL", "URL of the source (required), like http://orange.biolab.si")
-    info["source"] = "<a href={}>{}</a>".format(source, source_url)
+    info["source"] = "<a href='{}'>{}</a>".format(source_url, source)
 
 info["description"] = query(
     "description",
