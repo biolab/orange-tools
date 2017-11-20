@@ -121,7 +121,9 @@ elif data.domain.has_continuous_class:
 info["target"] = target
 
 info["instances"] = len(data)
-info["variables"] = len(data.domain.attributes) + len(data.domain.metas)
+info["variables"] = len(data.domain.attributes) \
+			+ len(data.domain.metas) \
+			+ len(data.domain.class_vars)
 info["version"] = "1.0"
 
 print("\nBasic info from data file:")
