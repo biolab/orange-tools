@@ -113,7 +113,7 @@ data = Orange.data.Table(args.file_name)
 base_name = os.path.basename(args.file_name)
 info["name"] = os.path.splitext(base_name)[0]
 
-target = "none"
+target = None
 if data.domain.has_discrete_class:
     target = "categorical"
 elif data.domain.has_continuous_class:
@@ -121,7 +121,9 @@ elif data.domain.has_continuous_class:
 info["target"] = target
 
 info["instances"] = len(data)
-info["variables"] = len(data.domain.attributes)
+info["variables"] = len(data.domain.attributes) \
+			+ len(data.domain.metas) \
+			+ len(data.domain.class_vars)
 info["version"] = "1.0"
 
 print("\nBasic info from data file:")
