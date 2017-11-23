@@ -138,7 +138,8 @@ if os.path.exists(info_file_name):
         helper_info = json.load(json_data)
 
 info["title"] = query("title", "Title is composed of one or few words. Use sentence case.")
-info["year"] = query("year", "Year of first publication of the data set.")
+year = query("year", "Year of first publication of the data set.")
+info["year"] = int(year) if year else None
 info["collection"] = query("collection", "Collection name, like UCI, R, or GEO.")
 
 source = query("Source", "Source description (like UCI ML Repository, or KDD Cup Competitions")
