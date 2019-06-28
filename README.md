@@ -33,3 +33,9 @@ stamper.py
 ----------
 Run it on a screenshot to place labels (circled numbers from 1 to 10).
 These augmented screenshots are then used in the widget documentation.
+
+widget\_icon\_export.py
+---------------------
+Run `python widget_icon_export.py` to export all currently installed widgets'
+icons in png format. Call `export_all_icons()` with the `format` keyword argument
+from the Python console, should another format be desired.
