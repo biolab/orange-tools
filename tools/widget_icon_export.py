@@ -1,58 +1,85 @@
-from PyQt5.QtCore import QRectF
-from PyQt5.QtGui import QColor, QPainter, QPixmap
-from PyQt5.QtWidgets import QApplication, QGraphicsScene, QGraphicsView, QSizePolicy
+#!/usr/bin/env python
+import sys
 
-from Orange.canvas.canvas import items
-from Orange.canvas.registry import (
+from PyQt5.QtCore import QRectF, QSize, QRect, QPoint, QSizeF, QPointF
+from PyQt5.QtGui import QColor, QPainter, QPixmap, QImage
+from PyQt5.QtWidgets import QApplication, QGraphicsScene, QGraphicsView, QSizePolicy, \
+    QStyleOptionGraphicsItem, QHBoxLayout
+
+from Orange.canvas import config
+from orangecanvas.canvas import items
+from orangecanvas.registry import (
     global_registry,
     WidgetDescription,
     CategoryDescription,
 )
-from Orange.canvas.registry.qt import QtWidgetRegistry
+from orangecanvas.registry.qt import QtWidgetRegistry
 
 # init QApp, QScreen
 app = QApplication([])
 
 # init full widget registry
-reg = global_registry()
-reg = QtWidgetRegistry(reg, parent=app)
+config_ = config.Config()
+reg = QtWidgetRegistry(parent=app)
+widget_discovery = config_.widget_discovery(reg)
+widget_discovery.run(config.widgets_entry_points())
 
 
 def save_widget_icon(
-    widget_description: WidgetDescription, category: CategoryDescription, format="png"
+        widget_description: WidgetDescription,
+        category: CategoryDescription,
+        export_size=QSize(100, 100),
+        format="png"
 ):
     item = items.NodeItem(reg.widget(widget_description.qualified_name))
     item.setWidgetCategory(category)
+    iconItem = item.icon_item
+    shapeItem = item.shapeItem
+
+    shapeSize = export_size
+    iconSize = QSize(export_size.width() * 3 / 4, export_size.height() * 3 / 4)
+
+    rect = QRectF(QPointF(-shapeSize.width() / 2, -shapeSize.height() / 2), QSizeF(shapeSize))
+    shapeItem.setShapeRect(rect)
+    iconItem.setIconSize(iconSize)
+    iconItem.setPos(-iconSize.width() / 2, -iconSize.height() / 2)
+
+    image = QImage(export_size, QImage.Format_RGB32)
+    image.fill(QColor("#FFFFFF"))
+    painter = QPainter(image)
 
     scene = QGraphicsScene()
-    view = QGraphicsView(scene)
-    view.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
-    scene.addItem(item.shapeItem)
-    view.show()
+    scene.addItem(shapeItem)
 
-    rect = view.viewport().rect()
-    pixmap = QPixmap(rect.size())
-    pixmap.fill(QColor("#FFFFFF"))
-    painter = QPainter(pixmap)
-    view.render(painter, QRectF(pixmap.rect()), rect)
+    scene.render(painter, QRectF(image.rect()), scene.sceneRect())
     painter.end()
 
     filename = widget_description.qualified_name + "." + format
-    if pixmap.save(filename, format):
+    if image.save(filename, format, 100):
         print("Saved " + filename)
     else:
         print("Failed to save " + filename)
 
 
-def export_all_icons(format="png"):
+def export_all_icons(export_size=QSize(100, 100), format="png"):
     """
     Exports icons of all currently installed widgets. 
     """
     for cat in reg.categories():
         for widget_desc in reg.widgets(cat):
-            save_widget_icon(widget_desc, cat, format=format)
+            save_widget_icon(widget_desc, cat, export_size=export_size, format=format)
 
 
 if __name__ == "__main__":
-    export_all_icons()
+    if len(sys.argv) > 1:
+        export_size = QSize(int(sys.argv[1]), int(sys.argv[1]))
+    else:
+        export_size = QSize(100, 100)
+
+    if len(sys.argv) > 2:
+        format = sys.argv[2]
+    else:
+        format = "png"
+
+    export_all_icons(export_size, format)
     app.exit(0)
