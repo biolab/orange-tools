@@ -36,6 +36,6 @@ These augmented screenshots are then used in the widget documentation.
 
 widget\_icon\_export.py
 ---------------------
-Run `python widget_icon_export.py` to export all currently installed widgets'
-icons in png format. Call `export_all_icons()` with the `format` keyword argument
-from the Python console, should another format be desired.
+Run `./widget_icon_export.py [<format>] [<export-icon-size>]` to export all 
+currently installed widgets' icons into the current directory. If no arguments
+are given, format defaults to 'png', export-icon-size defaults to 100. 
