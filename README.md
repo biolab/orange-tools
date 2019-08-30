@@ -38,4 +38,11 @@ widget\_icon\_export.py
 ---------------------
 Run `./widget_icon_export.py [<format>] [<export-icon-size>]` to export all 
 currently installed widgets' icons into the current directory. If no arguments
-are given, format defaults to 'png', export-icon-size defaults to 100. 
+are given, format defaults to 'png', export-icon-size defaults to 100.
+
+convert-to-indexed.sh
+---------------------
+Run `bash convert-to-indexed.sh <path-to-folder>`. The script creates a new folder with indexed images. It requires ImageMagick first. On OSX, install with `brew install imagemagick`. See [ImageMagick](https://imagemagick.org/script/download.php) for alternatives.
+
+
+
