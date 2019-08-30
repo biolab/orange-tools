@@ -3,8 +3,14 @@ import sys
 
 from PyQt5.QtCore import QRectF, QSize, QRect, QPoint, QSizeF, QPointF
 from PyQt5.QtGui import QColor, QPainter, QPixmap, QImage
-from PyQt5.QtWidgets import QApplication, QGraphicsScene, QGraphicsView, QSizePolicy, \
-    QStyleOptionGraphicsItem, QHBoxLayout
+from PyQt5.QtWidgets import (
+    QApplication,
+    QGraphicsScene,
+    QGraphicsView,
+    QSizePolicy,
+    QStyleOptionGraphicsItem,
+    QHBoxLayout,
+)
 
 from Orange.canvas import config
 from orangecanvas.canvas import items
@@ -14,6 +20,13 @@ from orangecanvas.registry import (
     CategoryDescription,
 )
 from orangecanvas.registry.qt import QtWidgetRegistry
+
+try:
+    # QWebEngineWidgets must be imported before QCoreApplication is created.
+    # It will fail with an import error if imported after.
+    import PyQt5.QtWebEngineWidgets
+except ImportError:
+    pass
 
 # init QApp, QScreen
 app = QApplication([])
@@ -26,10 +39,10 @@ widget_discovery.run(config.widgets_entry_points())
 
 
 def save_widget_icon(
-        widget_description: WidgetDescription,
-        category: CategoryDescription,
-        export_size=QSize(100, 100),
-        format="png"
+    widget_description: WidgetDescription,
+    category: CategoryDescription,
+    export_size=QSize(100, 100),
+    format="png",
 ):
     item = items.NodeItem(reg.widget(widget_description.qualified_name))
     item.setWidgetCategory(category)
@@ -39,7 +52,9 @@ def save_widget_icon(
     shapeSize = export_size
     iconSize = QSize(export_size.width() * 3 / 4, export_size.height() * 3 / 4)
 
-    rect = QRectF(QPointF(-shapeSize.width() / 2, -shapeSize.height() / 2), QSizeF(shapeSize))
+    rect = QRectF(
+        QPointF(-shapeSize.width() / 2, -shapeSize.height() / 2), QSizeF(shapeSize)
+    )
     shapeItem.setShapeRect(rect)
     iconItem.setIconSize(iconSize)
     iconItem.setPos(-iconSize.width() / 2, -iconSize.height() / 2)
