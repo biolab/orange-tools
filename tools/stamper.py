@@ -11,9 +11,6 @@ import pickle
 import uu
 import io
 
-import sip
-sip.setapi("QFileDialog", 2)
-
 from PIL import Image, ImageQt
 
 from AnyQt.QtCore import (
