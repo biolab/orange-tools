@@ -44,5 +44,13 @@ convert-to-indexed.sh
 ---------------------
 Run `bash convert-to-indexed.sh <path-to-folder>`. The script creates a new folder with indexed images. It requires ImageMagick first. On OSX, install with `brew install imagemagick`. See [ImageMagick](https://imagemagick.org/script/download.php) for alternatives.
 
+tinify_images.py
+----------------
+This uses [TinyPNG](https://tinypng.com/) API to compress images in a given directory.
+
+Example usage: `python tinify_images.py -k <your_api_key> -p <path_to_dir>` optionaly use -e parameter to speficy file extension (default are .png and .jpg).
+
+
+
 
 
