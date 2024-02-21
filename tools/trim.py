@@ -5,7 +5,6 @@ Ver 1.0: July 2010
 
 import argparse
 from PIL import Image, ImageChops, ImageFilter
-import glob
 import os.path
 
 # thumbnail_size = (180, 180)
@@ -93,7 +92,7 @@ def process(file_path, args):
 
     color_mask = rgb_color_finder(pim, t, t, all_bands=1)
     wim = rgb_color_replacer_by_mask(pim, (255, 255, 255), color_mask)
-    wim.thumbnail(thumbnail_size, Image.ANTIALIAS)
+    wim.thumbnail(thumbnail_size, Image.LANCZOS)
     wim = wim.filter(ImageFilter.DETAIL)
     wim.save("%s.thumb.png" % file_name)
     print("   -> thumb: %s.thumb.png, size %s" % (file_name, str(wim.size)))
