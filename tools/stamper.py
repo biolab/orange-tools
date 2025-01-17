@@ -4,7 +4,6 @@
 from __future__ import print_function, division
 
 import sys
-import random
 import functools
 import os.path
 import pickle
@@ -13,27 +12,21 @@ import io
 
 from PIL import Image, ImageQt
 
-from AnyQt.QtCore import (
-    QByteArray, QDataStream, QFile, QFileInfo,
-    QIODevice, QPoint, QPointF, QRectF, Qt
-)
-
-from AnyQt.QtCore import pyqtSignal as SIGNAL
+from AnyQt.QtCore import (QPoint, QPointF, Qt)
 
 from AnyQt.QtWidgets import (
-    QApplication, QDialog,
-    QDialogButtonBox, QFileDialog, QGraphicsItem, QGraphicsPixmapItem,
-    QGraphicsScene, QGraphicsPixmapItem, QGraphicsView, QGridLayout,
-    QHBoxLayout, QLabel, QMenu, QMessageBox, QPushButton, QSpinBox,
-    QStyle, QTextEdit, QVBoxLayout, QSizePolicy
+    QApplication, QDialog, QFileDialog, QGraphicsItem, QGraphicsScene,
+    QGraphicsPixmapItem, QGraphicsView, QHBoxLayout, QMenu, QMessageBox,
+    QPushButton, QVBoxLayout, QSizePolicy
 )
 
-from AnyQt.QtGui import (QCursor, QTransform, QPainter, QPen, QPixmap, QBrush)
+from AnyQt.QtGui import (QCursor, QTransform, QPainter, QPixmap)
+
 
 # file name prefixes
-ORG = "orig" # input image file
-NUM = "stamped" # text file with tags and positions
-TAG = "tags" # stamped file
+ORG = "orig"  # input image file
+NUM = "stamped"  # text file with tags and positions
+TAG = "tags"  # stamped file
 
 AppName = "Stamper"
 PointSize = 17
@@ -78,7 +71,6 @@ class GraphicsView(QGraphicsView):
             super(GraphicsView, self).keyPressEvent(event)
 
     def mouseDoubleClickEvent(self, e):
-        # super(GraphicsView, self).mouseDoubleClickEvent(e)
         if not self.scene().selectedItems():
             self.dialog.addTag()
 
@@ -111,7 +103,8 @@ def save_png(filename, xy, pixelRatio=1):
         background.paste((0, 0, 0), (int(x + overlay.size[0]//2 - 2),
                                      int(y + overlay.size[1]//2 - 2)),
                          overlay)
-    background.save(os.path.splitext(filename)[0] + "-" + NUM + ".png", dpi=background.info.get("dpi", (72, 72)))
+    background.save(os.path.splitext(filename)[0] + "-" + NUM + ".png",
+                    dpi=background.info.get("dpi", (72, 72)))
     print("done.")
 
 
@@ -128,10 +121,6 @@ class MainForm(QDialog):
         self.filename = os.path.splitext(filename)[0]
         if ("-%s" % ORG) in self.filename:
             self.filename = self.filename[:-len(ORG)-5] + ".png"
-
-        # self.view.setBackgroundBrush(QBrush(background))
-        # self.view.setCacheMode(QGraphicsView.CacheBackground)
-        # self.view.setDragMode(QGraphicsView.ScrollHandDrag)
 
         self.scene = QGraphicsScene(self)
         self.scene.addPixmap(background)
@@ -176,9 +165,11 @@ class MainForm(QDialog):
         info_name = self.filename + "-" + TAG + ".txt"
             
         if os.path.exists(info_name):
-            for tag, x, y in [line.strip().split("\t") for line in open(info_name, "rt").readlines()]:
-                self.addTag(int(tag), QPointF(int(x), int(y)), adjust_position=False)
-        global Dirty; Dirty=False
+            for tag, x, y in [line.strip().split("\t") for line in
+                              open(info_name, "rt").readlines()]:
+                self.addTag(int(tag), QPointF(int(x), int(y)),
+                            adjust_position=False)
+        global Dirty; Dirty = False
         self.show()
         self.raise_()
 
@@ -190,7 +181,7 @@ class MainForm(QDialog):
         QDialog.accept(self)
         
     def offerSave(self):
-        if (Dirty and QMessageBox.question(self, "%s - Unsaved Changes" % AppName, "Save unsaved changes?", 
+        if (Dirty and QMessageBox.question(self, "%s - Unsaved Changes" % AppName, "Save unsaved changes?",
                                            QMessageBox.Yes|QMessageBox.No) == QMessageBox.Yes):
             self.save()
 
@@ -203,23 +194,27 @@ class MainForm(QDialog):
             self.lastStamp = stamp
         else:
             self.lastStamp += 1
-        item = StampItem(self.lastStamp, position, self.scene, adjust_position=adjust_position)
+        item = StampItem(self.lastStamp, position, self.scene,
+                         adjust_position=adjust_position)
         item.update()
         global Dirty; Dirty = True
 
     def save(self):
-        vals = sorted([(item.stamp, item.pos().x(), item.pos().y()) for item in self.scene.items() if isinstance(item, StampItem)])
+        vals = sorted([(item.stamp, item.pos().x(), item.pos().y()) for item in
+                       self.scene.items() if isinstance(item, StampItem)])
         info_name = "%s-%s.txt" %(self.filename, TAG)
         f = open(info_name, "wt")
         for tag, x, y in vals:
             f.write("%s\t%d\t%d\n" % (tag, x, y))
         f.close()
-        save_png(self.filename, [(x-5, y-5) for _, x, y in vals], self.devicePixelRatioF())
+        save_png(self.filename, [(x-5, y-5) for _, x, y in vals],
+                 self.devicePixelRatioF())
         global Dirty; Dirty = False
 
     def renumberTags(self):
         """Number the tags by skipping the missing values"""
-        vals = sorted([(item.stamp, item) for item in self.scene.items() if isinstance(item, StampItem)])
+        vals = sorted([(item.stamp, item) for item in self.scene.items() if
+                       isinstance(item, StampItem)])
         for i, (_, v) in enumerate(vals):
             v.setStamp(i)
         if not vals: i = -1
@@ -228,7 +223,8 @@ class MainForm(QDialog):
         
     def alignBottom(self):
         """Align tags horizontally, use bottom margin as a reference"""
-        items = [item for item in self.scene.selectedItems() if isinstance(item, StampItem)]
+        items = [item for item in self.scene.selectedItems() if
+                 isinstance(item, StampItem)]
         if items:
             ref_y = max(item.pos().y() for item in items)
             for item in items:
@@ -237,12 +233,14 @@ class MainForm(QDialog):
                 
     def alignLeft(self):
         """Align tags vertically, use left margin as a reference"""
-        items = [item for item in self.scene.selectedItems() if isinstance(item, StampItem)]
+        items = [item for item in self.scene.selectedItems() if
+                 isinstance(item, StampItem)]
         if items:
             ref_x = min(item.pos().x() for item in items)
             for item in items:
                 item.setX(ref_x)
             global Dirty; Dirty = True
+
 
 class StampItem(QGraphicsPixmapItem):
     def __init__(self, stamp, position, scene, adjust_position=True,
@@ -261,7 +259,8 @@ class StampItem(QGraphicsPixmapItem):
 
     def setStamp(self, stamp):
         self.stamp = stamp
-        self.setPixmap(QPixmap.fromImage(ImageQt.ImageQt(im_numbers[stamp]), flags=Qt.AutoColor))
+        self.setPixmap(QPixmap.fromImage(ImageQt.ImageQt(im_numbers[stamp]),
+                                         flags=Qt.AutoColor))
         
     def parentWidget(self):
         return self.scene().views()[0]
@@ -272,7 +271,8 @@ class StampItem(QGraphicsPixmapItem):
         return QGraphicsPixmapItem.itemChange(self, change, variant)
     
     def promote(self, direction):
-        items = dict([(item.stamp, item) for item in self.scene().items() if isinstance(item, StampItem)])
+        items = dict([(item.stamp, item) for item in self.scene().items() if
+                      isinstance(item, StampItem)])
         new_stamp = self.stamp + direction
         if new_stamp in items:
             items[new_stamp].setStamp(self.stamp)
@@ -536,7 +536,7 @@ def as_bytes(bytes_or_text):
     else:
         return bytes_or_text.encode("latin-1")
 
-# retrieve image of numbers from uuencoded pickled objects
+# retrieve image of numbers from unencoded pickled objects
 
 c_r = io.BytesIO()
 uu.decode(io.BytesIO(numbers_coded), c_r)
@@ -548,7 +548,6 @@ else:
     objs = pickle.load(c_r, encoding="latin-1")
 
 im_numbers = [Image.open(io.BytesIO(as_bytes(obj))) for obj in objs]
-
 
 
 def usage(argv):
@@ -568,6 +567,7 @@ def usage(argv):
     print("*-%s.png  tagged image file" % NUM)
     print("*-%s.txt  coordinates of tags" % TAG)
 
+
 def main(argv=sys.argv):
     if len(argv) == 1:
         filename = None
@@ -579,8 +579,6 @@ def main(argv=sys.argv):
             filename = argv[1]
     
     app = QApplication(argv)
-    app.setAttribute(Qt.AA_EnableHighDpiScaling)
-    app.setAttribute(Qt.AA_UseHighDpiPixmaps)
     if filename is None:
         filename, _ = QFileDialog.getOpenFileName(
             None, "Image file", os.path.expanduser("~/Documents"),
@@ -590,10 +588,10 @@ def main(argv=sys.argv):
         print(filename)
 
     form = MainForm(filename=filename)
-    rect = QApplication.desktop().availableGeometry()
     form.show()
     form.raise_()
-    return app.exec_()
+    return app.exec()
+
 
 if __name__ == "__main__":
     sys.exit(main())
