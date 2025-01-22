@@ -22,6 +22,9 @@ from AnyQt.QtWidgets import (
 
 from AnyQt.QtGui import (QCursor, QTransform, QPainter, QPixmap)
 
+# import PIL last or risk AnyQt conflicts
+from PIL import Image, ImageQt
+
 
 # file name prefixes
 ORG = "orig"  # input image file
