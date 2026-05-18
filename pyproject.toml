@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "orange-tools"
+version = "0.1"
+description = "Utilities for Orange developers"
+classifiers = [
+    "Development Status :: 2 - Pre-Alpha",
+    "Intended Audience :: Developers",
+    "Topic :: Software Development :: Localization",
+    "Programming Language :: Python :: 3",
+]
+dependencies = [
+    "Orange3",
+    "AnyQt",
+    "pyqt6"
+]
+
+[project.scripts]
+show-workflow = "tools.showWorkflow:main"
+stamper = "tools.stamper:main"
+trimshot = "tools.trim:main"
+
+[tool.setuptools]
+packages = {find = {where = ["."]}}

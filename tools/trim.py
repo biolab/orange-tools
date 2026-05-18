@@ -98,12 +98,17 @@ def process(file_path, args):
     print("   -> thumb: %s.thumb.png, size %s" % (file_name, str(wim.size)))
 
 
-parser = argparse.ArgumentParser()
-parser.add_argument("-n", "--nocrop", help="crop image",
-                    action="store_true", default=False)
-parser.add_argument("-b", "--border", help="border width", default=3)
-parser.add_argument("files", type=str, help="file names to match")
-arguments = parser.parse_args()
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-n", "--nocrop", help="crop image",
+                        action="store_true", default=False)
+    parser.add_argument("-b", "--border", help="border width", default=3)
+    parser.add_argument("files", type=str, help="file names to match")
+    arguments = parser.parse_args()
 
-for f_name in arguments.files.split():
-    process(f_name, arguments)
+    for f_name in arguments.files.split():
+        process(f_name, arguments)
+
+
+if __name__ == "__main__":
+    main()
