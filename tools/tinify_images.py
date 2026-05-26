@@ -2,16 +2,29 @@ import argparse
 import pathlib
 import tinify
 import time
+import os
 
 
-def tinify_images(path, extensions):
+def tinify_images(target, extensions):
 
-    for file_path in [file for file in pathlib.Path(path).rglob('*')]:
-        if file_path.suffix in extensions:
-            print(f'Compressing image {file_path}')
-            source = tinify.from_file(file_path)
-            source.to_file(file_path)
+    if os.path.isdir(target):
+        for file_path in [file for file in pathlib.Path(path).rglob('*')]:
+            if file_path.suffix in extensions:
+                print(f'Compressing image {file_path}')
+                source = tinify.from_file(file_path)
+                source.to_file(file_path)
+                time.sleep(0.1)
+    elif os.path.isfile(target):
+        _, file_extension = os.path.splitext(target)
+        print(f"This is a file. {file_extension}")
+        if file_extension in extensions:
+            print(f'Compressing image {target}')
+            source = tinify.from_file(target)
+            source.to_file(target)
             time.sleep(0.1)
+    else:
+        print(f'Your target {target} is neither a file nor a directory.')
+        
 
 
 if __name__ == '__main__':
@@ -20,8 +33,8 @@ if __name__ == '__main__':
     parser.add_argument('-k', '--key', type=str, required=True,
                         help='API key')
 
-    parser.add_argument('-p', '--path', type=str, required=True,
-                        help='The directory to search.')
+    parser.add_argument('-t', '--target', type=str, required=True,
+                        help='The directory to search or the file to tinify.')
 
     parser.add_argument('-e', '--extensions', type=str, nargs='*',
                         default=['.png', '.jpg'],
@@ -30,4 +43,4 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     tinify.key = args.key
-    tinify_images(args.path, args.extensions)
+    tinify_images(args.target, args.extensions)
